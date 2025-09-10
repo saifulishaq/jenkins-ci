@@ -2,12 +2,21 @@ pipeline {
     agent any
 
     stages {
-        stage('first-stage') {
+        stage('Build') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
             steps {
-                cleanWs()
-                echo 'first pipeline in code...'
                 sh '''
-                    echo this is our first pipeline
+                    ls -la 
+                    node --version 
+                    npm --version
+                    npm ci 
+                    npm run build
+                    ls -la
                 '''
             }
         }
