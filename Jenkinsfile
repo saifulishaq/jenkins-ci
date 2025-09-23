@@ -20,17 +20,21 @@ pipeline {
                 '''
             }
         }
-        stage('AWS'){
+        stage('AWS S3 Deployment'){
             agent {
                 docker {
                     image 'amazon/aws-cli'
                     args "--entrypoint=''"
+                    reuseNode true
                 }
+            }
+            environment{
+                AWS_S3_BUCKET = 'learn-jenkins-saify'
             }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     sh '''
-                        aws s3 ls
+                        aws s3 sync ./build s3://$AWS_S3_BUCKET
                     '''
                 }
             }
