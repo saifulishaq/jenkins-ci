@@ -2,6 +2,8 @@ pipeline {
     agent any
 
     environment {
+        NETLIFY_SITE_ID = '0d8262c5-fd67-48d6-8ec2-76621be73ccf'
+        NETLIFY_AUTH_TOKEN = credentials('netlify-token')
         REACT_APP_VERSION = "1.0.$BUILD_ID"
     }
 
@@ -15,8 +17,13 @@ pipeline {
             }
             steps {
                 sh '''
+                    echo "small change"
+                    ls -la 
+                    node --version 
+                    npm --version
                     npm ci 
                     npm run build
+                    ls -la
                 '''
             }
         }
@@ -63,18 +70,50 @@ pipeline {
                 }
             }
         }
-        stage('AWS'){
+        stage('Staging deploy and test'){
             agent {
                 docker {
-                    image 'amazon/aws-cli'
-                    args "--entrypoint=''"
+                    image 'my-playwright'
+                        reuseNode true
+                    }
+                }
+            environment{
+                CI_ENVIRONMENT_URL = "Needs to be set"
+            }
+            steps{
+                sh '''
+                    netlify deploy --dir=build --json > deploy-output.json
+                    CI_ENVIRONMENT_URL=$(jq -r '.deploy_url' deploy-output.json)
+                    npx playwright test --reporter=html
+                    '''
+                echo "$CI_ENVIRONMENT_URL"
+            }
+            post {
+                always{
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright E2E Staging', reportTitles: '', useWrapperFileDirectly: true])
                 }
             }
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
-                    sh '''
-                        aws s3 ls
+        }
+        stage('Prod deploy and test'){
+            agent {
+                docker {
+                    image 'my-playwright'
+                        reuseNode true
+                    }
+                }
+            environment{
+                CI_ENVIRONMENT_URL = 'https://fastidious-clafoutis-c15c4d.netlify.app'
+            }
+            steps{
+                sh '''
+                    netlify --version
+                    netlify deploy --dir=build --prod
+                    npx playwright test --reporter=html
                     '''
+            }
+            post {
+                always{
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright E2E Prod', reportTitles: '', useWrapperFileDirectly: true])
                 }
             }
         }
