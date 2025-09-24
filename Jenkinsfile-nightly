@@ -5,6 +5,7 @@ pipeline {
         stage('Image build'){
             steps{
                 sh 'docker build -f ./Dockerfile-nightly-image -t my-playwright .'
+                sh 'docker build -f ./Dockerfile-aws-cli -t my-aws-cli .'
             }
         }
     }
