@@ -27,23 +27,21 @@ pipeline {
         stage('Build application image'){
             agent {
                 docker {
-                    image 'amazon/aws-cli'
+                    image 'my-aws-cli'
                     args "-u root -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=''"
                     reuseNode true
                 }
             }
             steps{
                 sh '''
-                    yum install docker -y
                     docker build -t my-app .
-
                 '''
             }
         }
         stage('AWS ECS Deployment'){
             agent {
                 docker {
-                    image 'amazon/aws-cli'
+                    image 'my-aws-cli'
                     args "-u root --entrypoint=''"
                     reuseNode true
                 }
@@ -51,7 +49,6 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     sh '''
-                        yum install jq -y
 
                         LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://./aws/task-definition-prod.json | jq '.taskDefinition.revision')
 
