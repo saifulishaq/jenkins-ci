@@ -7,6 +7,7 @@ pipeline {
         AWS_ECS_CLUSTER = "learn-jenkins-prod"
         AWS_ECS_SERVICE_PROD = "learn-jenkins-app-prod-service-1"
         AWS_ECS_TD = "learn-jenkins-app-prod"
+        AWS_ECR = "977083441270.dkr.ecr.eu-west-2.amazonaws.com/"
     }
 
     stages {
@@ -33,16 +34,20 @@ pipeline {
                 }
             }
             steps{
-                sh '''
-                    docker build -t my-app .
-                '''
+                withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                    sh '''
+                        docker build -t $AWS_ECR/my-app:$REACT_APP_VERSION .
+                        aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_ECR 
+                        docker push $AWS_ECR/my-app:$REACT_APP_VERSION
+                    '''
+                }
             }
         }
         stage('AWS ECS Deployment'){
             agent {
                 docker {
                     image 'my-aws-cli'
-                    args "-u root --entrypoint=''"
+                    args "--entrypoint=''"
                     reuseNode true
                 }
             }
