@@ -7,7 +7,7 @@ pipeline {
         AWS_ECS_CLUSTER = "learn-jenkins-prod"
         AWS_ECS_SERVICE_PROD = "learn-jenkins-app-prod-service-1"
         AWS_ECS_TD = "learn-jenkins-app-prod"
-        AWS_ECR = "977083441270.dkr.ecr.eu-west-2.amazonaws.com/"
+        AWS_ECR = "977083441270.dkr.ecr.eu-west-2.amazonaws.com"
     }
 
     stages {
