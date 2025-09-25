@@ -36,7 +36,7 @@ pipeline {
             steps{
                 withCredentials([usernamePassword(credentialsId: 'my-aws', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     sh '''
-                        docker build -t $AWS_ECR/my-app:$REACT_APP_VERSION .
+                        docker build -t $AWS_ECR:$REACT_APP_VERSION .
                         aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_ECR 
                         docker push $AWS_ECR:$REACT_APP_VERSION
                         echo "done"
