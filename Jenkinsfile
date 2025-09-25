@@ -7,7 +7,7 @@ pipeline {
         AWS_ECS_CLUSTER = "learn-jenkins-prod"
         AWS_ECS_SERVICE_PROD = "learn-jenkins-app-prod-service-1"
         AWS_ECS_TD = "learn-jenkins-app-prod"
-        AWS_ECR = "977083441270.dkr.ecr.eu-west-2.amazonaws.com"
+        AWS_ECR = "977083441270.dkr.ecr.eu-west-2.amazonaws.com/learnjenkins"
     }
 
     stages {
@@ -38,7 +38,7 @@ pipeline {
                     sh '''
                         docker build -t $AWS_ECR/my-app:$REACT_APP_VERSION .
                         aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_ECR 
-                        docker push $AWS_ECR/my-app:$REACT_APP_VERSION
+                        docker push $AWS_ECR:$REACT_APP_VERSION
                         echo "done"
                     '''
                 }
